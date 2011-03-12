@@ -36,7 +36,7 @@ module Socky
       r
     end
     
-    protected
+    # protected
     
     def auth
       [salt, signature].join(':')
@@ -81,7 +81,7 @@ module Socky
     end
     
     def presence?
-      self.channel_name.is_a?(String) && self.channel_name.match(/\Apresence-/)
+      self.channel_name.is_a?(String) && !!self.channel_name.match(/\Apresence-/)
     end
     
   end
