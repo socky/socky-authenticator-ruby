@@ -21,7 +21,7 @@ module Socky
     
     def initialize(args = {}, allow_changing_rights = false)
       @args = (args.is_a?(String) ? JSON.parse(args) : args) rescue nil
-      raise ArgumentError, 'Expected hash' unless @args.kind_of?(Hash)
+      raise ArgumentError, 'Expected hash or JSON' unless @args.kind_of?(Hash)
       @allow_changing_rights = allow_changing_rights
     end
     
@@ -72,7 +72,7 @@ module Socky
       return nil if !@allow_changing_rights && DEFAULT_RIGHTS.any?{ |right,val| r[right] != val }
       
       @rights = ['read', 'write', 'hide'].collect do |right|
-        r[right] ? '1' : '0'
+        r[right] && !(right == 'hide' && !self.presence?) ? '1' : '0'
       end.join
     end
     
