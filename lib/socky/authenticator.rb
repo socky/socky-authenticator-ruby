@@ -14,19 +14,22 @@ module Socky
     class << self
       attr_accessor :secret
       
-      def authenticate(args = {}, allow_changing_rights = false)
-        self.new(args, allow_changing_rights).result
+      def authenticate(args = {}, allow_changing_rights = false, secret = nil)
+        self.new(args, allow_changing_rights, secret).result
       end
     end
     
-    def initialize(args = {}, allow_changing_rights = false)
+    attr_accessor :secret
+    
+    def initialize(args = {}, allow_changing_rights = false, secret = nil)
       @args = (args.is_a?(String) ? JSON.parse(args) : args) rescue nil
       raise ArgumentError, 'Expected hash or JSON' unless @args.kind_of?(Hash)
+      @secret = secret || self.class.secret
       @allow_changing_rights = allow_changing_rights
     end
     
     def result
-      raise ArgumentError, 'set Authenticator.secret first' unless self.class.secret
+      raise ArgumentError, 'set Authenticator.secret first' unless self.secret
       raise ArgumentError, 'expected connection_id' unless self.connection_id
       raise ArgumentError, 'expected channel' unless self.channel_name
       raise ArgumentError, 'user are not allowed to change channel rights' unless self.rights
@@ -43,7 +46,7 @@ module Socky
     end
     
     def signature
-      HMAC::SHA256.hexdigest(self.class.secret, string_to_sign)
+      HMAC::SHA256.hexdigest(self.secret, string_to_sign)
     end
     
     def string_to_sign

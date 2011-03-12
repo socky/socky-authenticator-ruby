@@ -39,7 +39,7 @@ describe Socky::Authenticator do
     its(:result) { should eql('auth' => 'somerandomstring:28f138d68b1d4971d85355a5aa5a301be9084176b6ae1bbe2399de990de2039d') }
   
     it "should raise if authenticator secret is nil" do
-      Socky::Authenticator.secret = nil
+      subject.secret = nil
       lambda { subject.result }.should raise_error ArgumentError, 'set Authenticator.secret first'
     end
   
