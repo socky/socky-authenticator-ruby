@@ -3,7 +3,7 @@ require 'md5'
 require 'hmac-sha2'
 
 module Socky
-  module Authenticator
+  class Authenticator
     
     DEFAULT_RIGHTS = {
       'read' => true,
@@ -27,15 +27,16 @@ module Socky
     
     def result
       raise ArgumentError, 'set Authenticator.secret first' unless self.class.secret
-      raise ArgumentError, 'expected connection_id', unless self.connection_id
-      raise ArgumentError, 'expected channel', unless self.channel
+      raise ArgumentError, 'expected connection_id' unless self.connection_id
+      raise ArgumentError, 'expected channel' unless self.channel_name
+      raise ArgumentError, 'user are not allowed to change channel rights' unless self.rights
       
       r = { 'auth' => auth }
       r.merge!('data' => user_data) if self.presence?
       r
     end
     
-    private
+    protected
     
     def auth
       [salt, signature].join(':')
@@ -52,7 +53,7 @@ module Socky
     end
     
     def salt
-      @salt ||= MD5.new(rand.to_s)
+      @salt ||= MD5.new(rand.to_s).to_s
     end
     
     def connection_id
@@ -71,7 +72,7 @@ module Socky
       return nil if !@allow_changing_rights && DEFAULT_RIGHTS.any?{ |right,val| r[right] != val }
       
       @rights = ['read', 'write', 'hide'].collect do |right|
-        @args[right] ? '1' : '0'
+        r[right] ? '1' : '0'
       end.join
     end
     
