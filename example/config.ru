@@ -14,12 +14,18 @@ app = proc do |env|
   end
   
   if response
+    if request.params['callback']
+      body = request.params['callback'].to_s + '(' + response.to_json + ');'
+    else
+      body = response.to_json
+    end
+    
     [
       200,
       {
         'Content-Type' => 'text/javascript',
       },
-      response.to_json
+      body
     ]
   else
     [ 400, {}, []]
