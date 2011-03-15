@@ -26,7 +26,7 @@ describe Socky::Authenticator do
   context "instance" do
     subject { Socky::Authenticator.new('connection_id' => '1234ABCD', 'channel' => 'some_channel') }
     # Set salt to constant to make tests non-random
-    before { subject.instance_variable_set('@salt', 'somerandomstring') }
+    before { subject.salt =  'somerandomstring' }
   
     its(:salt) { should eql('somerandomstring') }
     its(:connection_id) { should eql('1234ABCD') }

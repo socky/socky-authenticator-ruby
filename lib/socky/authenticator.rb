@@ -19,7 +19,7 @@ module Socky
       end
     end
     
-    attr_accessor :secret
+    attr_accessor :secret, :salt
     
     def initialize(args = {}, allow_changing_rights = false, secret = nil)
       @args = (args.is_a?(String) ? JSON.parse(args) : args) rescue nil
@@ -38,8 +38,6 @@ module Socky
       r.merge!('data' => user_data) if self.presence?
       r
     end
-    
-    # protected
     
     def auth
       [salt, signature].join(':')
