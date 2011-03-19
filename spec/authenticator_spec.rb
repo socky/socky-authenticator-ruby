@@ -99,7 +99,7 @@ describe Socky::Authenticator do
       its(:auth) { should eql('somerandomstring:3cf543ceba1260b74e891144ea59ebb85b397de2c0172b00833dcbf62cd346d1') }
       its(:result) { should eql('auth' => 'somerandomstring:3cf543ceba1260b74e891144ea59ebb85b397de2c0172b00833dcbf62cd346d1', 'data' => 'null') }
     
-      context "widh user data provided" do
+      context "with user data provided" do
         before { subject.instance_variable_get('@args').merge!('data' => { 'some' => 'data' }) }
       
         its(:user_data) { should eql('{"some":"data"}') }
