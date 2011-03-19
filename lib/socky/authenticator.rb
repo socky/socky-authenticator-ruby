@@ -4,6 +4,7 @@ require 'hmac-sha2'
 
 module Socky
   class Authenticator
+    VERSION = '0.5.0.beta1'
     
     DEFAULT_RIGHTS = {
       'read' => true,
