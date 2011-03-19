@@ -79,7 +79,7 @@ module Socky
     end
     
     def user_data
-      @user_data ||= @args['data'].to_json
+      @user_data ||= (@args['data'].is_a?(String) ? @args['data'] : @args['data'].to_json)
     end
     
     def presence?

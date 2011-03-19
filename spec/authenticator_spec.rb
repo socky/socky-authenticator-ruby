@@ -99,8 +99,18 @@ describe Socky::Authenticator do
       its(:auth) { should eql('somerandomstring:3cf543ceba1260b74e891144ea59ebb85b397de2c0172b00833dcbf62cd346d1') }
       its(:result) { should eql('auth' => 'somerandomstring:3cf543ceba1260b74e891144ea59ebb85b397de2c0172b00833dcbf62cd346d1', 'data' => 'null') }
     
-      context "with user data provided" do
+      context "with hash user data provided" do
         before { subject.instance_variable_get('@args').merge!('data' => { 'some' => 'data' }) }
+      
+        its(:user_data) { should eql('{"some":"data"}') }
+        its(:string_to_sign) { should eql('somerandomstring:1234ABCD:presence-channel:100:{"some":"data"}') }
+        its(:signature) { should eql('71dabae0f47da5ac8e4982fa062abf09788f8fab40b7634427e380bfcec29855') }
+        its(:auth) { should eql('somerandomstring:71dabae0f47da5ac8e4982fa062abf09788f8fab40b7634427e380bfcec29855') }
+        its(:result) { should eql('auth' => 'somerandomstring:71dabae0f47da5ac8e4982fa062abf09788f8fab40b7634427e380bfcec29855', 'data' => '{"some":"data"}') }
+      end
+      
+      context "with string user data provided" do
+        before { subject.instance_variable_get('@args').merge!('data' => '{"some":"data"}') }
       
         its(:user_data) { should eql('{"some":"data"}') }
         its(:string_to_sign) { should eql('somerandomstring:1234ABCD:presence-channel:100:{"some":"data"}') }
