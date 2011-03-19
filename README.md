@@ -12,7 +12,7 @@ First require authenticator:
 
 After that call:
 
-    Socky::Authenticator.new(<data>)
+    Socky::Authenticator.authenticate(<data>)
 
 where \<data\> is Socky Client authentication data in Hash or JSON-encoded Hash format.
 
@@ -36,4 +36,4 @@ Otherwise you will need to provide secret each time when authenticating data.
 
 Except of that you can enable or disable authenticaton of user rights - if disabled(default) then user will not be able to change their rights. Full version of authenticator call will look like that:
 
-    Socky::Authenticator.new(<data>, allow_changing_rights, secret)
+    Socky::Authenticator.authenticate(<data>, allow_changing_rights, secret)
