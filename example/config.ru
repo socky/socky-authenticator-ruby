@@ -7,7 +7,7 @@ app = proc do |env|
   request = Rack::Request.new(env)
 
   begin
-    response = Socky::Authenticator.authenticate(request.params['payload'])
+    response = Socky::Authenticator.authenticate(request.params['payload'], true)
   rescue ArgumentError => e
     puts e.message
     response = nil
