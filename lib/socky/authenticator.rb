@@ -1,5 +1,5 @@
 require 'json'
-require 'md5'
+require 'digest/md5'
 require 'hmac-sha2'
 
 module Socky
@@ -55,7 +55,7 @@ module Socky
     end
     
     def salt
-      @salt ||= MD5.new(rand.to_s).to_s
+      @salt ||= Digest::MD5.hexdigest(rand.to_s)
     end
     
     def connection_id
