@@ -36,7 +36,7 @@ module Socky
       raise ArgumentError, 'user are not allowed to change channel rights' unless self.rights
       
       r = { 'auth' => auth }
-      r.merge!('data' => user_data) if self.presence?
+      r.merge!('data' => user_data) unless user_data.nil?
       r
     end
     
@@ -50,7 +50,7 @@ module Socky
     
     def string_to_sign
       args = [salt, connection_id, channel_name, rights]
-      args << user_data if presence?
+      args << user_data unless user_data.nil?
       args.collect(&:to_s).join(":")
     end
     
@@ -79,7 +79,11 @@ module Socky
     end
     
     def user_data
-      @user_data ||= (@args['data'].is_a?(String) ? @args['data'] : @args['data'].to_json)
+      @user_data ||= case @args['data']
+        when NilClass then nil
+        when String then @args['data']
+        else @args['data'].to_json
+      end
     end
     
     def presence?

@@ -61,12 +61,6 @@ describe Socky::Authenticator do
       lambda { subject.result }.should raise_error ArgumentError, 'user are not allowed to change channel rights'
     end
   
-    it "should ignore user data when not presence channel" do
-      subject.instance_variable_get('@args').merge!('data' => {'some' => 'data' })
-      subject.string_to_sign.should eql('somerandomstring:1234ABCD:some_channel:100')
-      subject.result.should eql('auth' => 'somerandomstring:28f138d68b1d4971d85355a5aa5a301be9084176b6ae1bbe2399de990de2039d')
-    end
-  
     context "with changing rights enables" do
       before { subject.instance_variable_set('@allow_changing_rights', true) }
     
@@ -93,11 +87,11 @@ describe Socky::Authenticator do
       its(:channel_name) { should eql('presence-channel') }
       its(:rights) { should eql('100') }
       its(:presence?) { should eql(true) }
-      its(:user_data) { should eql('null') }
-      its(:string_to_sign) { should eql('somerandomstring:1234ABCD:presence-channel:100:null') }
-      its(:signature) { should eql('3cf543ceba1260b74e891144ea59ebb85b397de2c0172b00833dcbf62cd346d1') }
-      its(:auth) { should eql('somerandomstring:3cf543ceba1260b74e891144ea59ebb85b397de2c0172b00833dcbf62cd346d1') }
-      its(:result) { should eql('auth' => 'somerandomstring:3cf543ceba1260b74e891144ea59ebb85b397de2c0172b00833dcbf62cd346d1', 'data' => 'null') }
+      its(:user_data) { should eql(nil) }
+      its(:string_to_sign) { should eql('somerandomstring:1234ABCD:presence-channel:100') }
+      its(:signature) { should eql('f0332936d0c3e59e2d9840d0c0b538ad88fba467ba546d8f9f91bc8d3cd95a1c') }
+      its(:auth) { should eql('somerandomstring:f0332936d0c3e59e2d9840d0c0b538ad88fba467ba546d8f9f91bc8d3cd95a1c') }
+      its(:result) { should eql('auth' => 'somerandomstring:f0332936d0c3e59e2d9840d0c0b538ad88fba467ba546d8f9f91bc8d3cd95a1c') }
     
       context "with hash user data provided" do
         before { subject.instance_variable_get('@args').merge!('data' => { 'some' => 'data' }) }
