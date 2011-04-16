@@ -1,39 +1,18 @@
+require 'rack'
 require 'json'
 require File.expand_path(File.dirname(__FILE__)) + '/../lib/socky/authenticator'
 
 Socky::Authenticator.secret = 'my_secret'
 
-app = proc do |env|
+authenticator = proc do |env|
   request = Rack::Request.new(env)
 
-  begin
-    response = Socky::Authenticator.authenticate(request.params['payload'], true)
-  rescue ArgumentError => e
-    puts e.message
-    response = nil
-  end
-
-  if response
-    if request.params['callback']
-      body = request.params['callback'].to_s + '(' + response.to_json + ');'
-    else
-      body = response.to_json
-    end
-
-    [
-      200,
-      {
-        'Content-Type' => 'text/javascript',
-      },
-      body
-    ]
-  else
-    [ 400, {}, []]
-  end
+  response = Socky::Authenticator.authenticate(request.params, true)
+  body = request.params['callback'].to_s + '(' + response.to_json + ');'
+  [ 200, {}, body ]
 end
 
-use Rack::CommonLogger
 
 map '/socky/auth' do
-  run app
+  run authenticator
 end
