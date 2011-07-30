@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "socky/authenticator"
+require "socky/authenticator/version"
 
 Gem::Specification.new do |s|
   s.name        = "socky-authenticator"
