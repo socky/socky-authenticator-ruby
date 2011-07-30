@@ -30,7 +30,7 @@ If you are validating presence channel then except auth data you will receive us
 
 Before authenticating request you will need to provide application secret. If you are using only one Socky application in code then you can set it once using:
 
-    Socky.secret = <secret>
+    Socky::Authenticator.secret = <secret>
 
 Otherwise you will need to provide secret each time when authenticating data.
 
