@@ -18,19 +18,21 @@ module Socky
       end
     end
     
-    attr_accessor :secret, :salt
+    attr_accessor :secret, :salt, :method
     
     def initialize(params, opts = {})
       @params = (params.is_a?(String) ? JSON.parse(params) : params) rescue nil
       raise ArgumentError, 'Expected hash or JSON' unless @params.kind_of?(Hash)
-      @secret = opts[:secret] || self.class.secret
-      @allow_changing_rights = opts[:allow_changing_rights]
+      @secret = opts[:secret] || opts['secret'] || self.class.secret
+      @method = opts[:method] || opts['method'] || :websocket
+      @allow_changing_rights = opts[:allow_changing_rights] || false
     end
     
     def result
       raise ArgumentError, 'set Authenticator.secret first' unless self.secret
       raise ArgumentError, 'expected connection_id' unless self.connection_id
       raise ArgumentError, 'expected channel' unless self.channel
+      raise ArgumentError, 'expected event' unless self.method != :http || self.event
       
       r = { 'auth' => auth }
       r.merge!('data' => user_data) unless user_data.nil?
@@ -46,7 +48,8 @@ module Socky
     end
     
     def string_to_sign
-      args = [salt, connection_id, channel, rights_string]
+      args = [salt, connection_id, channel]
+      args << (@method == :websocket ? rights_string : event.to_s)
       args << user_data unless user_data.nil?
       args.collect(&:to_s).join(":")
     end
@@ -62,6 +65,10 @@ module Socky
     def channel
       @params[:channel] || @params['channel']
     end
+    
+    def event
+      @params[:event] || @params['event']
+    end
         
     def rights
       {
@@ -72,7 +79,7 @@ module Socky
     end
     
     def user_data
-      @user_data ||= case @params['data']
+      @user_data ||= case (@params[:data] || @params['data'])
         when NilClass then nil
         when String then @params['data']
         else @params['data'].to_json
