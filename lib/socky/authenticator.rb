@@ -5,33 +5,32 @@ require 'hmac-sha2'
 module Socky
   class Authenticator
     DEFAULT_RIGHTS = {
-      'read' => true,
-      'write' => false,
-      'hide' => false
+      :read => true,
+      :write => false,
+      :hide => false
     }
     
     class << self
       attr_accessor :secret
       
-      def authenticate(params, allow_changing_rights = false, secret = nil)
-        self.new(params, allow_changing_rights, secret).result
+      def authenticate(params, opts = {})
+        self.new(params, opts).result
       end
     end
     
     attr_accessor :secret, :salt
     
-    def initialize(params, allow_changing_rights = false, secret = nil)
+    def initialize(params, opts = {})
       @params = (params.is_a?(String) ? JSON.parse(params) : params) rescue nil
       raise ArgumentError, 'Expected hash or JSON' unless @params.kind_of?(Hash)
-      @secret = secret || self.class.secret
-      @allow_changing_rights = allow_changing_rights
+      @secret = opts[:secret] || self.class.secret
+      @allow_changing_rights = opts[:allow_changing_rights]
     end
     
     def result
       raise ArgumentError, 'set Authenticator.secret first' unless self.secret
       raise ArgumentError, 'expected connection_id' unless self.connection_id
-      raise ArgumentError, 'expected channel' unless self.channel_name
-      raise ArgumentError, 'user are not allowed to change channel rights' unless self.rights
+      raise ArgumentError, 'expected channel' unless self.channel
       
       r = { 'auth' => auth }
       r.merge!('data' => user_data) unless user_data.nil?
@@ -47,7 +46,7 @@ module Socky
     end
     
     def string_to_sign
-      args = [salt, connection_id, channel_name, rights]
+      args = [salt, connection_id, channel, rights_string]
       args << user_data unless user_data.nil?
       args.collect(&:to_s).join(":")
     end
@@ -57,23 +56,19 @@ module Socky
     end
     
     def connection_id
-      @params['connection_id']
+      @params[:connection_id] || @params['connection_id']
     end
     
-    def channel_name
-      @params['channel']
+    def channel
+      @params[:channel] || @params['channel']
     end
-    
+        
     def rights
-      return @rights if defined?(@rights)
-      r = DEFAULT_RIGHTS.merge(@params)
-      
-      # Return nil if user is trying to change rights when this option is disabled
-      return nil if !@allow_changing_rights && DEFAULT_RIGHTS.any?{ |right,val| r[right] != val }
-      
-      @rights = ['read', 'write', 'hide'].collect do |right|
-        r[right] && !(right == 'hide' && !self.presence?) ? '1' : '0'
-      end.join
+      {
+        :read => read_right,
+        :write => write_right,
+        :hide => hide_right
+      }
     end
     
     def user_data
@@ -85,7 +80,30 @@ module Socky
     end
     
     def presence?
-      self.channel_name.is_a?(String) && !!self.channel_name.match(/\Apresence-/)
+      self.channel.is_a?(String) && !!self.channel.match(/\Apresence-/)
+    end
+    
+    private
+    
+    def read_right
+      return DEFAULT_RIGHTS[:read] unless @allow_changing_rights
+      [ @params[:read], @params['read'], DEFAULT_RIGHTS[:read] ].reject(&:nil?).first
+    end
+    
+    def write_right
+      return DEFAULT_RIGHTS[:write] unless @allow_changing_rights
+      [ @params[:write], @params['write'], DEFAULT_RIGHTS[:write] ].reject(&:nil?).first
+    end
+    
+    def hide_right
+      return DEFAULT_RIGHTS[:hide] unless self.presence? && @allow_changing_rights
+      [ @params[:hide], @params['hide'], DEFAULT_RIGHTS[:hide] ].reject(&:nil?).first
+    end
+    
+    def rights_string
+      [ rights[:read], rights[:write], rights[:hide] ].collect do |right|
+        right ? '1' : '0'
+      end.join
     end
     
   end

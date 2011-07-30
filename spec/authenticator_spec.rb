@@ -24,14 +24,15 @@ describe Socky::Authenticator do
   end
   
   context "instance" do
-    subject { Socky::Authenticator.new('connection_id' => '1234ABCD', 'channel' => 'some_channel') }
+    let(:default_params) { {:connection_id => '1234ABCD', :channel => 'some_channel'} }
+    subject { Socky::Authenticator.new(default_params) }
     # Set salt to constant to make tests non-random
     before { subject.salt =  'somerandomstring' }
   
     its(:salt) { should eql('somerandomstring') }
     its(:connection_id) { should eql('1234ABCD') }
-    its(:channel_name) { should eql('some_channel') }
-    its(:rights) { should eql('100') }
+    its(:channel) { should eql('some_channel') }
+    its(:rights) { should eql(:read => true, :write => false, :hide => false) }
     its(:presence?) { should eql(false) }
     its(:string_to_sign) { should eql('somerandomstring:1234ABCD:some_channel:100') }
     its(:signature) { should eql('28f138d68b1d4971d85355a5aa5a301be9084176b6ae1bbe2399de990de2039d') }
@@ -44,48 +45,45 @@ describe Socky::Authenticator do
     end
   
     it "should raise if connection_id is nil" do
-      subject.instance_variable_get('@params').delete('connection_id')
+      subject = Socky::Authenticator.new(default_params.reject{|k,v| k == :connection_id})
       subject.connection_id.should be_nil
       lambda { subject.result }.should raise_error ArgumentError, 'expected connection_id'
     end
   
     it "should raise if channel is nil" do
-      subject.instance_variable_get('@params').delete('channel')
-      subject.channel_name.should be_nil
+      subject = Socky::Authenticator.new(default_params.reject{|k,v| k == :channel})
+      subject.channel.should be_nil
       lambda { subject.result }.should raise_error ArgumentError, 'expected channel'
     end
   
     it "should not allow to changing rights at default" do
-      subject.instance_variable_get('@params').merge!('write' => true)
-      subject.rights.should be_nil
-      lambda { subject.result }.should raise_error ArgumentError, 'user are not allowed to change channel rights'
+      subject = Socky::Authenticator.new(default_params.merge(:read => false, :write => true, :hide => true))
+      subject.rights.should eql(:read => true, :write => false, :hide => false)
     end
   
     context "with changing rights enables" do
-      before { subject.instance_variable_set('@allow_changing_rights', true) }
-    
       it "should allow changing 'read' to false" do
-        subject.instance_variable_get('@params').merge!('read' => false)
-        subject.rights.should eql('000')
+        subject = Socky::Authenticator.new(default_params.merge(:read => false), :allow_changing_rights => true)
+        subject.rights[:read].should eql(false)
       end
     
       it "should allow changing 'write' to true" do
-        subject.instance_variable_get('@params').merge!('write' => true)
-        subject.rights.should eql('110')
+        subject = Socky::Authenticator.new(default_params.merge(:write => true), :allow_changing_rights => true)
+        subject.rights[:write].should eql(true)
       end
     
       it "should not allow changing 'hide' to true" do
-        subject.instance_variable_get('@params').merge!('hide' => true)
-        subject.rights.should eql('100')
+        subject = Socky::Authenticator.new(default_params.merge(:hide => true), :allow_changing_rights => true)
+        subject.rights[:hide].should eql(false)
       end
     
     end
   
     context "presence channel" do
-      before { subject.instance_variable_get('@params').merge!('channel' => 'presence-channel') }
+      subject { Socky::Authenticator.new(default_params.merge(:channel => 'presence-channel')) }
     
-      its(:channel_name) { should eql('presence-channel') }
-      its(:rights) { should eql('100') }
+      its(:channel) { should eql('presence-channel') }
+      its(:rights) { should eql(:read => true, :write => false, :hide => false) }
       its(:presence?) { should eql(true) }
       its(:user_data) { should eql(nil) }
       its(:string_to_sign) { should eql('somerandomstring:1234ABCD:presence-channel:100') }
@@ -94,7 +92,7 @@ describe Socky::Authenticator do
       its(:result) { should eql('auth' => 'somerandomstring:f0332936d0c3e59e2d9840d0c0b538ad88fba467ba546d8f9f91bc8d3cd95a1c') }
     
       context "with hash user data provided" do
-        before { subject.instance_variable_get('@params').merge!('data' => { 'some' => 'data' }) }
+        subject { Socky::Authenticator.new(default_params.merge(:channel => 'presence-channel', 'data' => { 'some' => 'data' })) }
       
         its(:user_data) { should eql('{"some":"data"}') }
         its(:string_to_sign) { should eql('somerandomstring:1234ABCD:presence-channel:100:{"some":"data"}') }
@@ -104,7 +102,7 @@ describe Socky::Authenticator do
       end
       
       context "with string user data provided" do
-        before { subject.instance_variable_get('@params').merge!('data' => '{"some":"data"}') }
+        subject { Socky::Authenticator.new(default_params.merge(:channel => 'presence-channel', 'data' => '{"some":"data"}')) }
       
         its(:user_data) { should eql('{"some":"data"}') }
         its(:string_to_sign) { should eql('somerandomstring:1234ABCD:presence-channel:100:{"some":"data"}') }
