@@ -13,16 +13,16 @@ module Socky
     class << self
       attr_accessor :secret
       
-      def authenticate(args = {}, allow_changing_rights = false, secret = nil)
-        self.new(args, allow_changing_rights, secret).result
+      def authenticate(params, allow_changing_rights = false, secret = nil)
+        self.new(params, allow_changing_rights, secret).result
       end
     end
     
     attr_accessor :secret, :salt
     
-    def initialize(args = {}, allow_changing_rights = false, secret = nil)
-      @args = (args.is_a?(String) ? JSON.parse(args) : args) rescue nil
-      raise ArgumentError, 'Expected hash or JSON' unless @args.kind_of?(Hash)
+    def initialize(params, allow_changing_rights = false, secret = nil)
+      @params = (params.is_a?(String) ? JSON.parse(params) : params) rescue nil
+      raise ArgumentError, 'Expected hash or JSON' unless @params.kind_of?(Hash)
       @secret = secret || self.class.secret
       @allow_changing_rights = allow_changing_rights
     end
@@ -57,16 +57,16 @@ module Socky
     end
     
     def connection_id
-      @args['connection_id']
+      @params['connection_id']
     end
     
     def channel_name
-      @args['channel']
+      @params['channel']
     end
     
     def rights
       return @rights if defined?(@rights)
-      r = DEFAULT_RIGHTS.merge(@args)
+      r = DEFAULT_RIGHTS.merge(@params)
       
       # Return nil if user is trying to change rights when this option is disabled
       return nil if !@allow_changing_rights && DEFAULT_RIGHTS.any?{ |right,val| r[right] != val }
@@ -77,10 +77,10 @@ module Socky
     end
     
     def user_data
-      @user_data ||= case @args['data']
+      @user_data ||= case @params['data']
         when NilClass then nil
-        when String then @args['data']
-        else @args['data'].to_json
+        when String then @params['data']
+        else @params['data'].to_json
       end
     end
     
