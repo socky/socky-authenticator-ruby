@@ -2,7 +2,9 @@
 
 ## Installation
 
-    gem install socky-authenticator
+``` bash
+$ gem install socky-authenticator
+```
 
 ## Usage
 
