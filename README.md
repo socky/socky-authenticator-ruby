@@ -1,4 +1,5 @@
-# Socky Authentication Module [![](https://travis-ci.org/socky/socky-authenticator-ruby.png)](http://travis-ci.org/socky/socky-authenticator-ruby)
+# Socky Authentication Module 
+[![Build Status](https://travis-ci.org/socky/socky-authenticator-ruby.png)](http://travis-ci.org/socky/socky-authenticator-ruby) [![Dependency Status](https://gemnasium.com/socky/socky-authenticator-ruby.png)](http://gemnasium.com/socky/socky-authenticator-ruby)
 
 ## Installation
 
